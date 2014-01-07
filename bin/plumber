@@ -1,0 +1,76 @@
+#!/usr/bin/env node
+
+var nopt = require('nopt');
+var path = require('path');
+
+try {
+    var plumber = require('plumber');
+} catch (e) {
+    console.error("Plumber not found!");
+    console.error("Please npm install plumber");
+    process.exit(1);
+}
+
+var cli = nopt({
+    watch: Boolean,
+    plumbing: path
+}, {
+    w: '--watch'
+}, process.argv, 2);
+
+
+var plumbingFile = cli.plumbing ||
+    // Default to file in current directory
+    path.join(process.cwd(), 'Plumbing.js');
+
+try {
+    var spec = require(plumbingFile);
+} catch(e) {
+    console.error('No plumbing file found at ' + plumbingFile);
+    process.exit(1);
+}
+
+
+// Read pipelines from plumbing file
+var pipelines = {};
+
+spec(pipelines);
+
+var pipelineArgs = cli.argv.remain;
+if (pipelineArgs.length === 0) {
+    // Run all pipelines
+    pipelineArgs = Object.keys(pipelines);
+}
+
+pipelineArgs.forEach(function(pipelineArg) {
+    var pipeline = pipelines[pipelineArg];
+    if (! pipeline) {
+        throw new Error('Pipeline not defined: ' + pipelineArg);
+    }
+
+    console.log("Run pipeline: " + pipelineArg);
+
+    var finalStep = plumber.run(pipeline);
+
+    // Report errors if any
+    var output = finalStep.output();
+    output.catch(function(err) {
+        console.log("Plumber failed: ", err.stack);
+    });
+
+    if (cli.watch) {
+        output.then(function() {
+            // FIXME: gaze is still observing, more and more!
+            function monitor() {
+                return finalStep.monitor().then(function() {
+                    console.log("Re-run pipeline: " + pipelineArg);
+                    finalStep.output().catch(function(err) {
+                        console.log("Plumber failed: ", err.stack);
+                    });
+                }).then(monitor);
+            }
+
+            monitor();
+        });
+    }
+});

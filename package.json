@@ -1,0 +1,29 @@
+{
+  "name": "plumber-cli",
+  "version": "0.1.16",
+  "description": "The plumber command line interface",
+  "bin": {
+    "plumber": "bin/plumber"
+  },
+  "preferGlobal": true,
+  "dependencies": {
+    "nopt": "~2.1.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/theefer/plumber-cli.git"
+  },
+  "keywords": [
+    "build",
+    "assets",
+    "pipeline"
+  ],
+  "author": "Sébastien Cevey <seb@cine7.net>",
+  "license": "GPL",
+  "bugs": {
+    "url": "https://github.com/theefer/plumber-cli/issues"
+  }
+}
