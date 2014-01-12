@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/theefer/plumber-cli.git"
+    "url": "git://github.com/plumberjs/plumber-cli.git"
   },
   "keywords": [
     "build",
@@ -24,6 +24,6 @@
   "author": "Sébastien Cevey <seb@cine7.net>",
   "license": "GPL",
   "bugs": {
-    "url": "https://github.com/theefer/plumber-cli/issues"
+    "url": "https://github.com/plumberjs/plumber-cli/issues"
   }
 }
