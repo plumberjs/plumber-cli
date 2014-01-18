@@ -26,7 +26,13 @@ var plumbingFile = cli.plumbing ||
 try {
     var spec = require(plumbingFile);
 } catch(e) {
-    console.error('No plumbing file found at ' + plumbingFile);
+    if (e.code === 'MODULE_NOT_FOUND' &&
+        e.message === "Cannot find module '"+plumbingFile+"'") {
+        console.error('No plumbing file found at ' + plumbingFile);
+    } else {
+        console.error('Error while loading the plumbing file:');
+        console.error(e.message);
+    }
     process.exit(1);
 }
 
