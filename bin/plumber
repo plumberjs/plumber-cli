@@ -3,12 +3,22 @@
 var nopt = require('nopt');
 var path = require('path');
 
+var cwd = process.cwd();
+
+var plumber;
 try {
-    var plumber = require('plumber');
+    // Try to load plumber lib from local modules first
+    plumber = require(path.join(cwd, 'node_modules', 'plumber'));
 } catch (e) {
-    console.error("Plumber not found!");
-    console.error("Please npm install plumber");
-    process.exit(1);
+    try {
+        // If that fails, try to load a globally installed plumber
+        plumber = require('plumber');
+    } catch(e) {
+        // Argh!
+        console.error("Plumber not found!");
+        console.error("Please npm install plumber");
+        process.exit(1);
+    }
 }
 
 var cli = nopt({
@@ -21,7 +31,7 @@ var cli = nopt({
 
 var plumbingFile = cli.plumbing ||
     // Default to file in current directory
-    path.join(process.cwd(), 'Plumbing.js');
+    path.join(cwd, 'Plumbing.js');
 
 try {
     var spec = require(plumbingFile);
