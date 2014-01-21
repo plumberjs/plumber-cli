@@ -1,6 +1,6 @@
 {
   "name": "plumber-cli",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "description": "The plumber command line interface",
   "bin": {
     "plumber": "bin/plumber"
