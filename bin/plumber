@@ -58,7 +58,11 @@ if (cli.version) {
 
 // Usage information
 if (cli.help) {
-    noptUsage(options, shortHands, descriptions);
+    var usage = noptUsage(options, shortHands, descriptions);
+    console.log("Usage: plumber [options] [pipelines]...");
+    console.log();
+    console.log("Available options:");
+    console.log(usage);
     process.exit(0);
 }
 
