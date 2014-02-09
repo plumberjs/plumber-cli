@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 var nopt = require('nopt');
+var noptUsage = require('nopt-usage');
+
 var path = require('path');
 
 var cwd = process.cwd();
@@ -21,12 +23,44 @@ try {
     }
 }
 
-var cli = nopt({
-    watch: Boolean,
+var options = {
+    version:  Boolean,
+    help:     Boolean,
+    list:     Boolean,
+    watch:    Boolean,
     plumbing: path
-}, {
+};
+var shortHands = {
+    V: '--version',
+    h: '--help',
+    l: '--list',
     w: '--watch'
-}, process.argv, 2);
+};
+var descriptions = {
+    version:  'Display version information',
+    help:     'Display usage help',
+    list:     'List available pipelines',
+    watch:    'Watch files for changes and re-run affected pipelines',
+    plumbing: 'Override path to the plumbing file'
+};
+
+var cli = nopt(options, shortHands, process.argv, 2);
+
+
+// Version information
+if (cli.version) {
+    var cliPackage = require('../package');
+    console.log('plumber-cli', 'v' + cliPackage.version);
+    console.log('plumber', 'v' + plumber.VERSION);
+    process.exit(0);
+}
+
+
+// Usage information
+if (cli.help) {
+    noptUsage(options, shortHands, descriptions);
+    process.exit(0);
+}
 
 
 var plumbingFile = cli.plumbing ||
@@ -51,6 +85,18 @@ try {
 var pipelines = {};
 
 spec(pipelines);
+
+
+// List pipelines only
+if (cli.list) {
+    console.log("Available pipelines:");
+    console.log();
+
+    Object.keys(pipelines).forEach(function(name) {
+        console.log(name);
+    });
+    process.exit(0);
+}
 
 var pipelineArgs = cli.argv.remain;
 if (pipelineArgs.length === 0) {
