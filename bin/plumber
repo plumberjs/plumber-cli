@@ -3,6 +3,7 @@
 var nopt = require('nopt');
 var noptUsage = require('nopt-usage');
 
+var fs = require('fs');
 var path = require('path');
 
 var cwd = process.cwd();
@@ -67,12 +68,14 @@ if (cli.help) {
 }
 
 
-var plumbingFile = cli.plumbing ||
-    // Default to file in current directory
-    path.join(cwd, 'Plumbing.js');
-
 try {
-    var spec = require(plumbingFile);
+    var plumbingFile = cli.plumbing || findFileInOrAbove('Plumbing.js', cwd);
+    if (plumbingFile) {
+        var spec = require(plumbingFile);
+    } else {
+        console.error('No plumbing file in current directory or above');
+        process.exit(1);
+    }
 } catch(e) {
     if (e.code === 'MODULE_NOT_FOUND' &&
         e.message === "Cannot find module '"+plumbingFile+"'") {
@@ -140,3 +143,17 @@ pipelineArgs.forEach(function(pipelineArg) {
         });
     }
 });
+
+
+
+function findFileInOrAbove(filename, dir) {
+    var filePath = path.join(dir, filename);
+    if (fs.existsSync(filePath)) {
+        return filePath;
+    } else {
+        var parentDir = path.dirname(dir);
+        if (parentDir !== dir) {
+            return findFileInOrAbove(filename, parentDir);
+        }
+    }
+}
