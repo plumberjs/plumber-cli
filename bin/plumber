@@ -133,7 +133,7 @@ pipelineArgs.forEach(function(pipelineArg) {
             function monitor() {
                 return finalStep.monitor().then(function() {
                     console.log("Re-run pipeline: " + pipelineArg);
-                    finalStep.output().catch(function(err) {
+                    return finalStep.output().catch(function(err) {
                         console.log("Plumber failed: ", err.stack);
                     });
                 }).then(monitor);
