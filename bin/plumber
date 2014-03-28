@@ -142,6 +142,7 @@ pipelineArgs.forEach(function(pipelineArg) {
         // TODO: test errors working
         output.fork().errors(function(error) {
             console.error("Plumber failed: ", error);
+            process.exit(1);
         });
     }
 });
