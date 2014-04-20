@@ -8,7 +8,8 @@
   "preferGlobal": true,
   "dependencies": {
     "nopt": "~2.1.2",
-    "nopt-usage": "~0.1.0"
+    "nopt-usage": "~0.1.0",
+    "chalk": "~0.4.0"
   },
   "peerDependencies": {
     "plumber": "0.3.x"

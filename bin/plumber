@@ -5,6 +5,7 @@ var noptUsage = require('nopt-usage');
 
 var fs = require('fs');
 var path = require('path');
+var chalk = require('chalk');
 
 var cwd = process.cwd();
 
@@ -18,8 +19,8 @@ try {
         plumber = require('plumber');
     } catch(e) {
         // Argh!
-        console.error("Plumber not found!");
-        console.error("Please npm install plumber");
+        printError("Plumber not found!");
+        printError("Please npm install plumber");
         process.exit(1);
     }
 }
@@ -73,16 +74,16 @@ try {
     if (plumbingFile) {
         var spec = require(plumbingFile);
     } else {
-        console.error('No plumbing file in current directory or above');
+        printError('No plumbing file in current directory or above');
         process.exit(1);
     }
 } catch(e) {
     if (e.code === 'MODULE_NOT_FOUND' &&
         e.message === "Cannot find module '"+plumbingFile+"'") {
-        console.error('No plumbing file found at ' + plumbingFile);
+        printError('No plumbing file found at ' + plumbingFile);
     } else {
-        console.error('Error while loading the plumbing file:');
-        console.error(e.message);
+        printError('Error while loading the plumbing file:');
+        printError(e.message);
     }
     process.exit(1);
 }
@@ -117,7 +118,7 @@ pipelineArgs.forEach(function(pipelineArg) {
         throw new Error('Pipeline not defined: ' + pipelineArg);
     }
 
-    console.log("Run pipeline: " + pipelineArg);
+    console.log(chalk.green("Run pipeline: " + pipelineArg));
 
 
     var outputReports = plumber.outputReports;
@@ -141,7 +142,7 @@ pipelineArgs.forEach(function(pipelineArg) {
         var output = runner.run();
         // TODO: test errors working
         output.fork().errors(function(error) {
-            console.error("Plumber failed: ", error);
+            printError("Plumber failed: ", error);
         });
     }
 });
@@ -158,4 +159,9 @@ function findFileInOrAbove(filename, dir) {
             return findFileInOrAbove(filename, parentDir);
         }
     }
+}
+
+
+function printError(/* args */) {
+    console.error(chalk.red.apply(null, arguments));
 }
