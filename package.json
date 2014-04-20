@@ -10,6 +10,9 @@
     "nopt": "~2.1.2",
     "nopt-usage": "~0.1.0"
   },
+  "peerDependencies": {
+    "plumber": "0.3.x"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
