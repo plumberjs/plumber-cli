@@ -141,7 +141,7 @@ pipelineArgs.forEach(function(pipelineArg) {
     } else {
         var output = runner.run();
         // TODO: test errors working
-        output.fork().errors(function(error) {
+        output.catch(function(error) {
             printError("Plumber failed: ", error);
         });
     }
