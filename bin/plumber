@@ -83,7 +83,7 @@ try {
         printError('No plumbing file found at ' + plumbingFile);
     } else {
         printError('Error while loading the plumbing file:');
-        printError(e.message);
+        printError(e.stack);
     }
     process.exit(1);
 }
