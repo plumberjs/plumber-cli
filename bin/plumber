@@ -133,18 +133,23 @@ pipelineArgs.forEach(function(pipelineArg) {
 
 
     var runner = plumber.parse(verbosePipeline);
-    if (cli.watch) {
-        runner.watch();
-        // TODO: make it work!
-        // TODO: show on every re-run
-        // console.log("Re-run pipeline: " + pipelineArg);
-    } else {
-        var output = runner.run();
-        // TODO: test errors working
-        output.catch(function(error) {
-            printError("Plumber failed: ", error);
-        });
-    }
+    var output = runner.run();
+    output.subscribe(function(executions) {
+        executions.subscribe(
+            function onNext(resources) {
+            },
+            // TODO: test errors working
+            function onError(error) {
+                printError("Plumber failed: ", error);
+            },
+            function onCompleted() {
+                // Unless watching, stop after first stream of resources ends
+                if (! cli.watch) {
+                    process.exit(0);
+                }
+            }
+        );
+    });
 });
 
 
