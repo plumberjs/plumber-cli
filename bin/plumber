@@ -140,7 +140,10 @@ pipelineArgs.forEach(function(pipelineArg) {
             },
             // TODO: test errors working
             function onError(error) {
-                printError("Plumber failed: ", error);
+                printError("Plumber failed:", error.stack);
+                if (! cli.watch) {
+                    process.exit(1);
+                }
             },
             function onCompleted() {
                 // Unless watching, stop after first stream of resources ends
