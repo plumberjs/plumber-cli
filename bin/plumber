@@ -112,48 +112,49 @@ if (pipelineArgs.length === 0) {
     pipelineArgs = Object.keys(pipelines);
 }
 
-pipelineArgs.forEach(function(pipelineArg) {
-    var pipeline = pipelines[pipelineArg];
-    if (! pipeline) {
-        throw new Error('Pipeline not defined: ' + pipelineArg);
-    }
+plumber.Rx.Observable.fromArray(pipelineArgs)
+    .flatMap(function (pipelineArg) {
+        var pipeline = pipelines[pipelineArg];
+        if (! pipeline) {
+            throw new Error('Pipeline not defined: ' + pipelineArg);
+        }
 
-    console.log(chalk.green("Run pipeline: " + pipelineArg));
-
-
-    var outputReports = plumber.outputReports;
-    var warnRemainingResources = plumber.warnRemainingResources;
-
-    // Append output operations
-    var verbosePipeline = [
-        pipeline,
-        outputReports(),
-        warnRemainingResources()
-    ];
+        console.log(chalk.green("Run pipeline: " + pipelineArg));
 
 
-    var runner = plumber.parse(verbosePipeline);
-    var output = runner.run();
-    output.subscribe(function(executions) {
-        executions.subscribe(
-            function onNext(resources) {
-            },
-            // TODO: test errors working
-            function onError(error) {
-                printError("Plumber failed:", error.stack);
-                if (! cli.watch) {
-                    process.exit(1);
-                }
-            },
-            function onCompleted() {
-                // Unless watching, stop after first stream of resources ends
-                if (! cli.watch) {
-                    process.exit(0);
-                }
+        var outputReports = plumber.outputReports;
+        var warnRemainingResources = plumber.warnRemainingResources;
+
+        // Append output operations
+        var verbosePipeline = [
+            pipeline,
+            outputReports(),
+            warnRemainingResources()
+        ];
+
+
+        var runner = plumber.parse(verbosePipeline);
+        var output = runner.run();
+        return output;
+    })
+    .mergeAll()
+    .subscribe(
+        function onNext(resources) {
+        },
+        // TODO: test errors working
+        function onError(error) {
+            printError("Plumber failed:", error.stack);
+            if (! cli.watch) {
+                process.exit(1);
             }
-        );
-    });
-});
+        },
+        function onCompleted() {
+            // Unless watching, stop after first stream of resources ends
+            if (! cli.watch) {
+                process.exit(0);
+            }
+        }
+    );
 
 
 
