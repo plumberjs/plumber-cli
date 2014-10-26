@@ -128,8 +128,22 @@ pipelineArgs.forEach(function(pipelineArg) {
     var verbosePipeline = [
         pipeline,
         outputReports(),
-        warnRemainingResources()
+        warnRemainingResources(),
+        warnErrorReports()
     ];
+
+    function warnErrorReports() {
+        return plumber.operation(function (resourcesOrReports) {
+            var errorReports = resourcesOrReports.filter(function (report) {
+                return plumber.Report.isReport(report)
+                    && ! report.success && report.errors.length > 0;
+            });
+            return errorReports.map(function () {
+                // Side effect
+                process.exit(1);
+            });
+        });
+    }
 
 
     var runner = plumber.parse(verbosePipeline);
