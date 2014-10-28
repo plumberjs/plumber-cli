@@ -25,6 +25,8 @@ try {
     }
 }
 
+var Rx = plumber.Rx;
+
 var options = {
     version:  Boolean,
     help:     Boolean,
@@ -112,7 +114,8 @@ if (pipelineArgs.length === 0) {
     pipelineArgs = Object.keys(pipelines);
 }
 
-pipelineArgs.forEach(function(pipelineArg) {
+
+var executionPipelines = pipelineArgs.map(function(pipelineArg) {
     var pipeline = pipelines[pipelineArg];
     if (! pipeline) {
         throw new Error('Pipeline not defined: ' + pipelineArg);
@@ -133,27 +136,43 @@ pipelineArgs.forEach(function(pipelineArg) {
 
 
     var runner = plumber.parse(verbosePipeline);
-    var output = runner.run();
-    output.subscribe(function(executions) {
-        executions.subscribe(
-            function onNext(resources) {
-            },
-            // TODO: test errors working
-            function onError(error) {
-                printError("Plumber failed:", error.stack);
-                if (! cli.watch) {
-                    process.exit(1);
-                }
-            },
-            function onCompleted() {
-                // Unless watching, stop after first stream of resources ends
-                if (! cli.watch) {
-                    process.exit(0);
-                }
-            }
-        );
-    });
+    return runner.run();
 });
+
+var combinedExecutions = Rx.Observable.combineLatest(executionPipelines, Rx.Observable.merge);
+
+var processedExecutions;
+if (cli.watch) {
+    processedExecutions = combinedExecutions;
+} else {
+    // if not watching, run one execution only
+    processedExecutions = combinedExecutions.take(1);
+}
+
+
+var hadErrors = false;
+
+processedExecutions.
+    map(function(execution) {
+        return execution.catch(function(error) {
+            printError("Plumber failed:", error.stack);
+            hadErrors = true;
+            return Rx.Observable.empty();
+        });
+    }).
+    mergeAll(). // flatten executions into a stream of resources
+    // TODO: upgrade Rx to use subscribeOnCompleted
+    subscribe(
+        function onNext(resource) { /* noop */ },
+        function onError(error) { /* noop */ },
+        function onCompleted() {
+            // Exit explicitly as there may be pending Gaze handlers that keep
+            // the process running
+            // TODO: avoid pending gazes so this isn't necessary
+            var ret = hadErrors ? 1 : 0;
+            process.exit(ret);
+        }
+    );
 
 
 
