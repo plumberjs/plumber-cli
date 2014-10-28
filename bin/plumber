@@ -150,15 +150,26 @@ if (cli.watch) {
 }
 
 
+// Return error if an exception occurs or a report is unsuccessful with errors
 var hadErrors = false;
 
 processedExecutions.
     map(function(execution) {
-        return execution.catch(function(error) {
-            printError("Plumber failed:", error.stack);
-            hadErrors = true;
-            return Rx.Observable.empty();
-        });
+        return execution
+            .catch(function(error) {
+                printError("Plumber failed:", error.stack);
+                hadErrors = true;
+                return Rx.Observable.empty();
+            })
+            .filter(function (resourceOrReport) {
+                return plumber.Report.isReport(resourceOrReport)
+                    && ! resourceOrReport.success
+                    && resourceOrReport.errors.length > 0;
+            })
+            .take(1)
+            .map(function () {
+                hadErrors = true;
+            });
     }).
     mergeAll(). // flatten executions into a stream of resources
     // TODO: upgrade Rx to use subscribeOnCompleted
