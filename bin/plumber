@@ -153,15 +153,13 @@ if (cli.watch) {
 var hadErrors = false;
 
 processedExecutions.
-    map(function(execution) {
-        return execution.catch(function(error) {
-            printError("Plumber failed:", error.stack);
-            hadErrors = true;
-            return Rx.Observable.empty();
-        });
-    }).
     mergeAll(). // flatten executions into a stream of resources
     // TODO: upgrade Rx to use subscribeOnCompleted
+    catch(function(error) {
+        printError("Plumber failed:", error.stack);
+        hadErrors = true;
+        return Rx.Observable.empty();
+    }).
     subscribe(
         function onNext(resource) { /* noop */ },
         function onError(error) { /* noop */ },
