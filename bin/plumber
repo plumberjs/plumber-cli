@@ -160,21 +160,18 @@ processedExecutions.
                 printError("Plumber failed:", error.stack);
                 hadErrors = true;
                 return Rx.Observable.empty();
-            })
-            .filter(function (resourceOrReport) {
-                return plumber.Report.isReport(resourceOrReport)
-                    && ! resourceOrReport.success
-                    && resourceOrReport.errors.length > 0;
-            })
-            .take(1)
-            .map(function () {
-                hadErrors = true;
             });
     }).
     mergeAll(). // flatten executions into a stream of resources
     // TODO: upgrade Rx to use subscribeOnCompleted
     subscribe(
-        function onNext(resource) { /* noop */ },
+        function onNext(resourceOrReport) {
+            if (plumber.Report.isReport(resourceOrReport)
+                && ! resourceOrReport.success
+                && resourceOrReport.errors.length > 0) {
+                hadErrors = true;
+            }
+        },
         function onError(error) { /* noop */ },
         function onCompleted() {
             // Exit explicitly as there may be pending Gaze handlers that keep
